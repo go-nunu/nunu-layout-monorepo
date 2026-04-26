@@ -2,7 +2,7 @@ package web
 
 import "embed"
 
-//go:embed dist/*
+//go:embed all:dist
 var assets embed.FS
 
 func Assets() embed.FS {
