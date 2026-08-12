@@ -6,6 +6,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Released]
 
+### v3.1.0 - 2026-08-12
+
+#### Added
+
+- Added hierarchical categories for menus and API resources
+- Added menu-to-API associations so role permission assignment automatically includes required APIs
+- Added server-side validation for permission dependencies, hierarchy cycles, duplicate identities, and unsafe deletion
+- Added lifecycle synchronization that keeps Casbin policies aligned when menus and APIs change
+
+#### Changed
+
+- Upgraded generated API documentation and the embedded Swagger UI document to Swag v2
+- Updated role permission replacement to run transactionally and enforce menu/API dependencies
+
+#### Fixed
+
+- Fixed stale authorization policies after menu or API updates and deletions
+- Fixed dual-column sidebar collapsed width and scrolling behavior
+- Fixed concurrent permission-dialog requests producing inconsistent selections
+
+#### ⚠️ Important Notice
+
+> This version changes permission relationships and requires re-login.
+
+---
+
 ### v3.0.1 - 2025-11-15
 
 #### Fixed
