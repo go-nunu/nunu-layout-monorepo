@@ -5,7 +5,6 @@ import (
 	"fmt"
 	v1 "nunu-layout-monorepo/app/admin/api/v1"
 	"nunu-layout-monorepo/model"
-	"strings"
 
 	"github.com/duke-git/lancet/v2/convertor"
 	"go.uber.org/zap"
@@ -24,14 +23,18 @@ type AdminRepository interface {
 	GetUserPermissions(ctx context.Context, uid uint) ([][]string, error)
 	GetUserRoles(ctx context.Context, uid uint) ([]string, error)
 	GetRolePermissions(ctx context.Context, role string) ([][]string, error)
-	UpdateRolePermission(ctx context.Context, role string, permissions map[string]struct{}) error
+	UpdateRolePermission(ctx context.Context, role string, permissions []model.Permission) error
 	UpdateUserRoles(ctx context.Context, uid uint, roles []string) error
 	DeleteUserRoles(ctx context.Context, uid uint) error
+	ReplacePermissionReferences(ctx context.Context, replacements map[model.Permission]model.Permission) error
+	DeletePermissionReferences(ctx context.Context, permissions []model.Permission) error
+	ReloadPolicy() error
 
 	GetMenuList(ctx context.Context) ([]model.Menu, error)
 	MenuUpdate(ctx context.Context, m *model.Menu) error
 	MenuCreate(ctx context.Context, m *model.Menu) error
 	MenuDelete(ctx context.Context, id uint) error
+	RemoveMenuFromApis(ctx context.Context, menuID uint) error
 
 	GetRoles(ctx context.Context, req *v1.GetRoleListRequest) ([]model.Role, int64, error)
 	RoleUpdate(ctx context.Context, m *model.Role) error
@@ -43,6 +46,9 @@ type AdminRepository interface {
 
 	GetApis(ctx context.Context, req *v1.GetApisRequest) ([]model.Api, int64, error)
 	GetApiGroups(ctx context.Context) ([]string, error)
+	GetApi(ctx context.Context, id uint) (model.Api, error)
+	GetApiList(ctx context.Context) ([]model.Api, error)
+	ApiPermissionExists(ctx context.Context, path, method string, excludeID uint) (bool, error)
 	ApiUpdate(ctx context.Context, m *model.Api) error
 	ApiCreate(ctx context.Context, m *model.Api) error
 	ApiDelete(ctx context.Context, id uint) error
@@ -58,6 +64,21 @@ func NewAdminRepository(
 
 type adminRepository struct {
 	*Repository
+}
+
+type casbinRule struct {
+	ID    uint   `gorm:"primaryKey;autoIncrement"`
+	Ptype string `gorm:"size:100"`
+	V0    string `gorm:"size:100"`
+	V1    string `gorm:"size:100"`
+	V2    string `gorm:"size:100"`
+	V3    string `gorm:"size:100"`
+	V4    string `gorm:"size:100"`
+	V5    string `gorm:"size:100"`
+}
+
+func (casbinRule) TableName() string {
+	return "casbin_rule"
 }
 
 func (r *adminRepository) CasbinRoleDelete(ctx context.Context, role string) error {
@@ -195,55 +216,80 @@ func (r *adminRepository) AdminUserDelete(ctx context.Context, id uint) error {
 	return nil
 }
 
-func (r *adminRepository) UpdateRolePermission(ctx context.Context, role string, newPermSet map[string]struct{}) error {
-	// 获取当前角色的所有权限
-	oldPermissions, err := r.e.GetPermissionsForUser(role)
+func (r *adminRepository) UpdateRolePermission(ctx context.Context, role string, permissions []model.Permission) error {
+	err := r.DB(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Where("ptype = ? AND v0 = ?", "p", role).Delete(&casbinRule{}).Error; err != nil {
+			return err
+		}
+		if len(permissions) == 0 {
+			return nil
+		}
+		rules := make([]casbinRule, 0, len(permissions))
+		for _, permission := range permissions {
+			rules = append(rules, casbinRule{
+				Ptype: "p",
+				V0:    role,
+				V1:    permission.Resource,
+				V2:    permission.Action,
+			})
+		}
+		return tx.Clauses(clause.OnConflict{DoNothing: true}).Create(&rules).Error
+	})
 	if err != nil {
 		return err
 	}
+	return r.ReloadPolicy()
+}
 
-	// 将旧权限转换为 map 方便查找
-	oldPermSet := make(map[string]struct{})
-	for _, perm := range oldPermissions {
-		if len(perm) == 3 {
-			oldPermSet[strings.Join([]string{perm[1], perm[2]}, model.PermSep)] = struct{}{}
+func (r *adminRepository) ReplacePermissionReferences(
+	ctx context.Context,
+	replacements map[model.Permission]model.Permission,
+) error {
+	for oldPermission, newPermission := range replacements {
+		if oldPermission == newPermission {
+			continue
+		}
+		var rules []casbinRule
+		if err := r.DB(ctx).
+			Where("ptype = ? AND v1 = ? AND v2 = ?", "p", oldPermission.Resource, oldPermission.Action).
+			Find(&rules).Error; err != nil {
+			return err
+		}
+		if len(rules) == 0 {
+			continue
+		}
+		ids := make([]uint, 0, len(rules))
+		for _, rule := range rules {
+			ids = append(ids, rule.ID)
+		}
+		if err := r.DB(ctx).Where("id IN ?", ids).Delete(&casbinRule{}).Error; err != nil {
+			return err
+		}
+		for index := range rules {
+			rules[index].ID = 0
+			rules[index].V1 = newPermission.Resource
+			rules[index].V2 = newPermission.Action
+		}
+		if err := r.DB(ctx).Clauses(clause.OnConflict{DoNothing: true}).Create(&rules).Error; err != nil {
+			return err
 		}
 	}
-
-	// 找出需要删除的权限
-	var removePermissions [][]string
-	for key, _ := range oldPermSet {
-		if _, exists := newPermSet[key]; !exists {
-			removePermissions = append(removePermissions, strings.Split(key, model.PermSep))
-		}
-	}
-
-	// 找出需要添加的权限
-	var addPermissions [][]string
-	for key, _ := range newPermSet {
-		if _, exists := oldPermSet[key]; !exists {
-			addPermissions = append(addPermissions, strings.Split(key, model.PermSep))
-		}
-
-	}
-
-	// 先移除多余的权限（使用 DeletePermissionForUser 逐条删除）
-	for _, perm := range removePermissions {
-		_, err := r.e.DeletePermissionForUser(role, perm...)
-		if err != nil {
-			return fmt.Errorf("移除权限失败: %v", err)
-		}
-	}
-
-	// 再添加新的权限
-	if len(addPermissions) > 0 {
-		_, err = r.e.AddPermissionsForUser(role, addPermissions...)
-		if err != nil {
-			return fmt.Errorf("添加新权限失败: %v", err)
-		}
-	}
-
 	return nil
+}
+
+func (r *adminRepository) DeletePermissionReferences(ctx context.Context, permissions []model.Permission) error {
+	for _, permission := range permissions {
+		if err := r.DB(ctx).
+			Where("ptype = ? AND v1 = ? AND v2 = ?", "p", permission.Resource, permission.Action).
+			Delete(&casbinRule{}).Error; err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r *adminRepository) ReloadPolicy() error {
+	return r.e.LoadPolicy()
 }
 
 func (r *adminRepository) GetApiGroups(ctx context.Context) ([]string, error) {
@@ -275,18 +321,47 @@ func (r *adminRepository) GetApis(ctx context.Context, req *v1.GetApisRequest) (
 	if err := scope.Count(&total).Error; err != nil {
 		return nil, total, err
 	}
-	if err := scope.Offset((req.Page - 1) * req.PageSize).Limit(req.PageSize).Order(groupColumn + " ASC").Find(&list).Error; err != nil {
+	if err := scope.Offset((req.Page - 1) * req.PageSize).Limit(req.PageSize).
+		Order(groupColumn + " ASC").Order("id ASC").Find(&list).Error; err != nil {
 		return nil, total, err
 	}
 	return list, total, nil
 }
 
+func (r *adminRepository) GetApi(ctx context.Context, id uint) (model.Api, error) {
+	api := model.Api{}
+	return api, r.DB(ctx).Where("id = ?", id).First(&api).Error
+}
+
+func (r *adminRepository) GetApiList(ctx context.Context) ([]model.Api, error) {
+	var list []model.Api
+	return list, r.DB(ctx).Order("id ASC").Find(&list).Error
+}
+
+func (r *adminRepository) ApiPermissionExists(
+	ctx context.Context,
+	path string,
+	method string,
+	excludeID uint,
+) (bool, error) {
+	query := r.DB(ctx).Model(&model.Api{}).Where("path = ? AND method = ?", path, method)
+	if excludeID != 0 {
+		query = query.Where("id <> ?", excludeID)
+	}
+	var count int64
+	if err := query.Count(&count).Error; err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
+
 func (r *adminRepository) ApiUpdate(ctx context.Context, m *model.Api) error {
 	tx := r.DB(ctx).Model(&model.Api{}).Where("id = ?", m.ID).Select(
-		"Group",
-		"Name",
-		"Path",
-		"Method",
+		"group",
+		"name",
+		"path",
+		"method",
+		"menu_ids",
 	).Updates(m)
 	if tx.Error != nil {
 		return tx.Error
@@ -302,12 +377,37 @@ func (r *adminRepository) ApiCreate(ctx context.Context, m *model.Api) error {
 }
 
 func (r *adminRepository) ApiDelete(ctx context.Context, id uint) error {
-	tx := r.DB(ctx).Where("id = ?", id).Delete(&model.Api{})
+	tx := r.DB(ctx).Unscoped().Where("id = ?", id).Delete(&model.Api{})
 	if tx.Error != nil {
 		return tx.Error
 	}
 	if tx.RowsAffected == 0 {
 		return gorm.ErrRecordNotFound
+	}
+	return nil
+}
+
+func (r *adminRepository) RemoveMenuFromApis(ctx context.Context, menuID uint) error {
+	var apis []model.Api
+	if err := r.DB(ctx).Find(&apis).Error; err != nil {
+		return err
+	}
+	for _, api := range apis {
+		menuIDs := make([]uint, 0, len(api.MenuIDs))
+		changed := false
+		for _, id := range api.MenuIDs {
+			if id == menuID {
+				changed = true
+				continue
+			}
+			menuIDs = append(menuIDs, id)
+		}
+		if changed {
+			if err := r.DB(ctx).Model(&model.Api{}).Where("id = ?", api.ID).
+				Select("menu_ids").Updates(&model.Api{MenuIDs: menuIDs}).Error; err != nil {
+				return err
+			}
+		}
 	}
 	return nil
 }
@@ -323,7 +423,7 @@ func (r *adminRepository) GetUserRoles(ctx context.Context, uid uint) ([]string,
 	return r.e.GetRolesForUser(convertor.ToString(uid))
 }
 func (r *adminRepository) MenuUpdate(ctx context.Context, m *model.Menu) error {
-	return r.DB(ctx).Where("id = ?", m.ID).Select(
+	tx := r.DB(ctx).Where("id = ?", m.ID).Select(
 		"parent_id",
 		"path",
 		"title",
@@ -350,7 +450,14 @@ func (r *adminRepository) MenuUpdate(ctx context.Context, m *model.Menu) error {
 		"is_full_page",
 		"roles",
 		"auth_list",
-	).Updates(m).Error
+	).Updates(m)
+	if tx.Error != nil {
+		return tx.Error
+	}
+	if tx.RowsAffected == 0 {
+		return r.ensureRecordExists(ctx, &model.Menu{}, m.ID)
+	}
+	return nil
 }
 
 func (r *adminRepository) MenuCreate(ctx context.Context, m *model.Menu) error {

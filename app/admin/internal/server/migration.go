@@ -193,32 +193,31 @@ func (m *MigrateServer) addPermissionForRole(role, resource, action string) {
 }
 func (m *MigrateServer) initialApisData(ctx context.Context) error {
 	initialApis := []model.Api{
-
 		{Group: "基础API", Name: "获取用户菜单列表", Path: "/v1/menus", Method: http.MethodGet},
-		{Group: "基础API", Name: "获取管理员信息", Path: "/v1/admin/user", Method: http.MethodGet},
+		{Group: "基础API", Name: "获取管理员信息", Path: "/v1/admin/user", Method: http.MethodGet, MenuIDs: []uint{60}},
 
-		{Group: "菜单管理", Name: "获取管理菜单", Path: "/v1/admin/menus", Method: http.MethodGet},
-		{Group: "菜单管理", Name: "创建菜单", Path: "/v1/admin/menu", Method: http.MethodPost},
-		{Group: "菜单管理", Name: "更新菜单", Path: "/v1/admin/menu", Method: http.MethodPut},
-		{Group: "菜单管理", Name: "删除菜单", Path: "/v1/admin/menu", Method: http.MethodDelete},
+		{Group: "权限管理/菜单", Name: "获取管理菜单", Path: "/v1/admin/menus", Method: http.MethodGet, MenuIDs: []uint{62, 63, 64}},
+		{Group: "权限管理/菜单", Name: "创建菜单", Path: "/v1/admin/menu", Method: http.MethodPost, MenuIDs: []uint{63}},
+		{Group: "权限管理/菜单", Name: "更新菜单", Path: "/v1/admin/menu", Method: http.MethodPut, MenuIDs: []uint{63}},
+		{Group: "权限管理/菜单", Name: "删除菜单", Path: "/v1/admin/menu", Method: http.MethodDelete, MenuIDs: []uint{63}},
 
-		{Group: "权限模块", Name: "获取用户权限", Path: "/v1/admin/user/permissions", Method: http.MethodGet},
-		{Group: "权限模块", Name: "获取角色权限", Path: "/v1/admin/role/permissions", Method: http.MethodGet},
-		{Group: "权限模块", Name: "更新角色权限", Path: "/v1/admin/role/permissions", Method: http.MethodPut},
-		{Group: "权限模块", Name: "获取角色列表", Path: "/v1/admin/roles", Method: http.MethodGet},
-		{Group: "权限模块", Name: "创建角色", Path: "/v1/admin/role", Method: http.MethodPost},
-		{Group: "权限模块", Name: "更新角色", Path: "/v1/admin/role", Method: http.MethodPut},
-		{Group: "权限模块", Name: "删除角色", Path: "/v1/admin/role", Method: http.MethodDelete},
+		{Group: "权限管理/角色", Name: "获取用户权限", Path: "/v1/admin/user/permissions", Method: http.MethodGet, MenuIDs: []uint{62}},
+		{Group: "权限管理/角色", Name: "获取角色权限", Path: "/v1/admin/role/permissions", Method: http.MethodGet, MenuIDs: []uint{62}},
+		{Group: "权限管理/角色", Name: "更新角色权限", Path: "/v1/admin/role/permissions", Method: http.MethodPut, MenuIDs: []uint{62}},
+		{Group: "权限管理/角色", Name: "获取角色列表", Path: "/v1/admin/roles", Method: http.MethodGet, MenuIDs: []uint{62}},
+		{Group: "权限管理/角色", Name: "创建角色", Path: "/v1/admin/role", Method: http.MethodPost, MenuIDs: []uint{62}},
+		{Group: "权限管理/角色", Name: "更新角色", Path: "/v1/admin/role", Method: http.MethodPut, MenuIDs: []uint{62}},
+		{Group: "权限管理/角色", Name: "删除角色", Path: "/v1/admin/role", Method: http.MethodDelete, MenuIDs: []uint{62}},
 
-		{Group: "权限模块", Name: "获取管理员列表", Path: "/v1/admin/users", Method: http.MethodGet},
-		{Group: "权限模块", Name: "更新管理员信息", Path: "/v1/admin/user", Method: http.MethodPut},
-		{Group: "权限模块", Name: "创建管理员账号", Path: "/v1/admin/user", Method: http.MethodPost},
-		{Group: "权限模块", Name: "删除管理员", Path: "/v1/admin/user", Method: http.MethodDelete},
+		{Group: "权限管理/用户", Name: "获取管理员列表", Path: "/v1/admin/users", Method: http.MethodGet, MenuIDs: []uint{61}},
+		{Group: "权限管理/用户", Name: "更新管理员信息", Path: "/v1/admin/user", Method: http.MethodPut, MenuIDs: []uint{61}},
+		{Group: "权限管理/用户", Name: "创建管理员账号", Path: "/v1/admin/user", Method: http.MethodPost, MenuIDs: []uint{61}},
+		{Group: "权限管理/用户", Name: "删除管理员", Path: "/v1/admin/user", Method: http.MethodDelete, MenuIDs: []uint{61}},
 
-		{Group: "权限模块", Name: "获取API列表", Path: "/v1/admin/apis", Method: http.MethodGet},
-		{Group: "权限模块", Name: "创建API", Path: "/v1/admin/api", Method: http.MethodPost},
-		{Group: "权限模块", Name: "更新API", Path: "/v1/admin/api", Method: http.MethodPut},
-		{Group: "权限模块", Name: "删除API", Path: "/v1/admin/api", Method: http.MethodDelete},
+		{Group: "权限管理/接口", Name: "获取API列表", Path: "/v1/admin/apis", Method: http.MethodGet, MenuIDs: []uint{62, 64}},
+		{Group: "权限管理/接口", Name: "创建API", Path: "/v1/admin/api", Method: http.MethodPost, MenuIDs: []uint{64}},
+		{Group: "权限管理/接口", Name: "更新API", Path: "/v1/admin/api", Method: http.MethodPut, MenuIDs: []uint{64}},
+		{Group: "权限管理/接口", Name: "删除API", Path: "/v1/admin/api", Method: http.MethodDelete, MenuIDs: []uint{64}},
 	}
 
 	return m.db.Create(&initialApis).Error

@@ -2,7 +2,7 @@
 init:
 	go install github.com/google/wire/cmd/wire@latest
 	go install github.com/golang/mock/mockgen@latest
-	go install github.com/swaggo/swag/cmd/swag@latest
+	go install github.com/swaggo/swag/v2/cmd/swag@v2.0.0-rc5
 
 .PHONY: admin-bootstrap admin-run admin-migrate admin-web-build admin-build admin-build-task admin-build-migration admin-test admin-mock admin-docker-task admin-swag
 admin-bootstrap:
