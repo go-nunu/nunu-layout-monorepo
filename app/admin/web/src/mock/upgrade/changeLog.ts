@@ -9,6 +9,24 @@ interface UpgradeLog {
 
 export const upgradeLogList = ref<UpgradeLog[]>([
   {
+    version: 'v3.1.0',
+    title: '菜单与 API 权限联动及层级管理',
+    date: '2026-08-12',
+    requireReLogin: true,
+    detail: [
+      '新增：菜单与 API 上下级分类及关联关系',
+      '新增：勾选菜单权限时自动勾选并锁定所需 API',
+      '新增：服务端强制校验菜单与 API 权限依赖',
+      '优化：菜单和 API 变更、删除时自动同步 Casbin 策略',
+      '优化：角色权限使用事务整体替换，避免产生不完整授权',
+      '升级：Swagger 文档生成切换为 Swag v2',
+      '修复：菜单或 API 修改后残留失效授权策略的问题',
+      '修复：双列侧边栏折叠宽度及滚动异常问题',
+      '修复：权限弹窗并发请求导致勾选状态不一致的问题'
+    ],
+    remark: '本次升级调整了权限关联关系，升级后需要重新登录。'
+  },
+  {
     version: 'v3.0.2',
     title: '问题修复、表单与路由体验优化',
     date: '2026-03-15',

@@ -121,66 +121,66 @@ type GetMenuResponse struct {
 }
 
 type MenuCreateRequest struct {
-	ParentID      uint               `json:"parentId,omitempty"`      // 父级菜单的id，使用整数表示
-	Weight        int                `json:"weight"`                  // 排序权重
-	Path          string             `json:"path"`                    // 地址
-	Title         string             `json:"title"`                   // 展示名称
-	Name          string             `json:"name,omitempty"`          // 同路由中的name，唯一标识
-	Component     string             `json:"component,omitempty"`     // 绑定的组件
-	Locale        string             `json:"locale,omitempty"`        // 本地化标识
-	Icon          string             `json:"icon,omitempty"`          // 图标，使用字符串表示
-	Redirect      string             `json:"redirect,omitempty"`      // 重定向地址
-	KeepAlive     bool               `json:"keepAlive,omitempty"`     // 是否保活
-	HideInMenu    bool               `json:"hideInMenu,omitempty"`    // 兼容旧版隐藏菜单字段
-	IsEnable      bool               `json:"isEnable"`                // 是否启用
-	IsMenu        bool               `json:"isMenu"`                  // 是否菜单
-	IsHide        bool               `json:"isHide,omitempty"`        // 是否隐藏菜单
-	IsHideTab     bool               `json:"isHideTab,omitempty"`     // 是否隐藏标签页
-	Link          string             `json:"link,omitempty"`          // 外部链接
-	IsIframe      bool               `json:"isIframe,omitempty"`      // 是否 iframe
-	ShowBadge     bool               `json:"showBadge,omitempty"`     // 是否显示徽章
-	ShowTextBadge string             `json:"showTextBadge,omitempty"` // 文本徽章
-	FixedTab      bool               `json:"fixedTab,omitempty"`      // 是否固定标签页
-	ActivePath    string             `json:"activePath,omitempty"`    // 激活菜单路径
-	Roles         []string           `json:"roles,omitempty"`         // 角色权限
-	IsFullPage    bool               `json:"isFullPage,omitempty"`    // 是否全屏页面
-	AuthList      []MenuAuthDataItem `json:"authList,omitempty"`      // 按钮权限列表
-	Target        string             `json:"target,omitempty"`        // 外链打开方式
-	URL           string             `json:"url,omitempty"`           // iframe模式下的跳转url，不能与path重复
+	ParentID      uint               `json:"parentId,omitempty"`       // 父级菜单的id，使用整数表示
+	Weight        int                `json:"weight"`                   // 排序权重
+	Path          string             `json:"path" binding:"required"`  // 地址
+	Title         string             `json:"title" binding:"required"` // 展示名称
+	Name          string             `json:"name" binding:"required"`  // 同路由中的name，唯一标识
+	Component     string             `json:"component,omitempty"`      // 绑定的组件
+	Locale        string             `json:"locale,omitempty"`         // 本地化标识
+	Icon          string             `json:"icon,omitempty"`           // 图标，使用字符串表示
+	Redirect      string             `json:"redirect,omitempty"`       // 重定向地址
+	KeepAlive     bool               `json:"keepAlive,omitempty"`      // 是否保活
+	HideInMenu    bool               `json:"hideInMenu,omitempty"`     // 兼容旧版隐藏菜单字段
+	IsEnable      bool               `json:"isEnable"`                 // 是否启用
+	IsMenu        bool               `json:"isMenu"`                   // 是否菜单
+	IsHide        bool               `json:"isHide,omitempty"`         // 是否隐藏菜单
+	IsHideTab     bool               `json:"isHideTab,omitempty"`      // 是否隐藏标签页
+	Link          string             `json:"link,omitempty"`           // 外部链接
+	IsIframe      bool               `json:"isIframe,omitempty"`       // 是否 iframe
+	ShowBadge     bool               `json:"showBadge,omitempty"`      // 是否显示徽章
+	ShowTextBadge string             `json:"showTextBadge,omitempty"`  // 文本徽章
+	FixedTab      bool               `json:"fixedTab,omitempty"`       // 是否固定标签页
+	ActivePath    string             `json:"activePath,omitempty"`     // 激活菜单路径
+	Roles         []string           `json:"roles,omitempty"`          // 角色权限
+	IsFullPage    bool               `json:"isFullPage,omitempty"`     // 是否全屏页面
+	AuthList      []MenuAuthDataItem `json:"authList,omitempty"`       // 按钮权限列表
+	Target        string             `json:"target,omitempty"`         // 外链打开方式
+	URL           string             `json:"url,omitempty"`            // iframe模式下的跳转url，不能与path重复
 
 }
 type MenuUpdateRequest struct {
-	ID            uint               `json:"id,omitempty"`            // 唯一id，使用整数表示
-	ParentID      uint               `json:"parentId,omitempty"`      // 父级菜单的id，使用整数表示
-	Weight        int                `json:"weight"`                  // 排序权重
-	Path          string             `json:"path"`                    // 地址
-	Title         string             `json:"title"`                   // 展示名称
-	Name          string             `json:"name,omitempty"`          // 同路由中的name，唯一标识
-	Component     string             `json:"component,omitempty"`     // 绑定的组件
-	Locale        string             `json:"locale,omitempty"`        // 本地化标识
-	Icon          string             `json:"icon,omitempty"`          // 图标，使用字符串表示
-	Redirect      string             `json:"redirect,omitempty"`      // 重定向地址
-	KeepAlive     bool               `json:"keepAlive,omitempty"`     // 是否保活
-	HideInMenu    bool               `json:"hideInMenu,omitempty"`    // 兼容旧版隐藏菜单字段
-	IsEnable      bool               `json:"isEnable"`                // 是否启用
-	IsMenu        bool               `json:"isMenu"`                  // 是否菜单
-	IsHide        bool               `json:"isHide,omitempty"`        // 是否隐藏菜单
-	IsHideTab     bool               `json:"isHideTab,omitempty"`     // 是否隐藏标签页
-	Link          string             `json:"link,omitempty"`          // 外部链接
-	IsIframe      bool               `json:"isIframe,omitempty"`      // 是否 iframe
-	ShowBadge     bool               `json:"showBadge,omitempty"`     // 是否显示徽章
-	ShowTextBadge string             `json:"showTextBadge,omitempty"` // 文本徽章
-	FixedTab      bool               `json:"fixedTab,omitempty"`      // 是否固定标签页
-	ActivePath    string             `json:"activePath,omitempty"`    // 激活菜单路径
-	Roles         []string           `json:"roles,omitempty"`         // 角色权限
-	IsFullPage    bool               `json:"isFullPage,omitempty"`    // 是否全屏页面
-	AuthList      []MenuAuthDataItem `json:"authList,omitempty"`      // 按钮权限列表
-	Target        string             `json:"target,omitempty"`        // 外链打开方式
-	URL           string             `json:"url,omitempty"`           // iframe模式下的跳转url，不能与path重复
+	ID            uint               `json:"id" binding:"required"`    // 唯一id，使用整数表示
+	ParentID      uint               `json:"parentId,omitempty"`       // 父级菜单的id，使用整数表示
+	Weight        int                `json:"weight"`                   // 排序权重
+	Path          string             `json:"path" binding:"required"`  // 地址
+	Title         string             `json:"title" binding:"required"` // 展示名称
+	Name          string             `json:"name" binding:"required"`  // 同路由中的name，唯一标识
+	Component     string             `json:"component,omitempty"`      // 绑定的组件
+	Locale        string             `json:"locale,omitempty"`         // 本地化标识
+	Icon          string             `json:"icon,omitempty"`           // 图标，使用字符串表示
+	Redirect      string             `json:"redirect,omitempty"`       // 重定向地址
+	KeepAlive     bool               `json:"keepAlive,omitempty"`      // 是否保活
+	HideInMenu    bool               `json:"hideInMenu,omitempty"`     // 兼容旧版隐藏菜单字段
+	IsEnable      bool               `json:"isEnable"`                 // 是否启用
+	IsMenu        bool               `json:"isMenu"`                   // 是否菜单
+	IsHide        bool               `json:"isHide,omitempty"`         // 是否隐藏菜单
+	IsHideTab     bool               `json:"isHideTab,omitempty"`      // 是否隐藏标签页
+	Link          string             `json:"link,omitempty"`           // 外部链接
+	IsIframe      bool               `json:"isIframe,omitempty"`       // 是否 iframe
+	ShowBadge     bool               `json:"showBadge,omitempty"`      // 是否显示徽章
+	ShowTextBadge string             `json:"showTextBadge,omitempty"`  // 文本徽章
+	FixedTab      bool               `json:"fixedTab,omitempty"`       // 是否固定标签页
+	ActivePath    string             `json:"activePath,omitempty"`     // 激活菜单路径
+	Roles         []string           `json:"roles,omitempty"`          // 角色权限
+	IsFullPage    bool               `json:"isFullPage,omitempty"`     // 是否全屏页面
+	AuthList      []MenuAuthDataItem `json:"authList,omitempty"`       // 按钮权限列表
+	Target        string             `json:"target,omitempty"`         // 外链打开方式
+	URL           string             `json:"url,omitempty"`            // iframe模式下的跳转url，不能与path重复
 	UpdatedAt     string             `json:"updatedAt"`
 }
 type MenuDeleteRequest struct {
-	ID uint `form:"id"` // 唯一id，使用整数表示
+	ID uint `form:"id" binding:"required"` // 唯一id，使用整数表示
 }
 type GetRoleListRequest struct {
 	Page     int    `form:"page" binding:"required" example:"1"`
@@ -220,8 +220,8 @@ type PermissionCreateRequest struct {
 	Name string `form:"name" binding:"required" example:"Admin"`
 }
 type GetApisRequest struct {
-	Page     int    `form:"page" binding:"required" example:"1"`
-	PageSize int    `form:"pageSize" binding:"required" example:"10"`
+	Page     int    `form:"page" binding:"required,min=1" example:"1"`
+	PageSize int    `form:"pageSize" binding:"required,min=1,max=1000" example:"10"`
 	Group    string `form:"group" binding:"" example:"权限管理"`
 	Name     string `form:"name" binding:"" example:"菜单列表"`
 	Path     string `form:"path" binding:"" example:"/v1/test"`
@@ -233,6 +233,7 @@ type ApiDataItem struct {
 	Path      string `json:"path"`
 	Method    string `json:"method"`
 	Group     string `json:"group"`
+	MenuIDs   []uint `json:"menuIds"`
 	UpdatedAt string `json:"updatedAt"`
 	CreatedAt string `json:"createdAt"`
 }
@@ -246,17 +247,19 @@ type GetApisResponse struct {
 	Data GetApisResponseData
 }
 type ApiCreateRequest struct {
-	Group  string `json:"group" form:"group" binding:"" example:"权限管理"`
-	Name   string `json:"name" form:"name" binding:"" example:"菜单列表"`
-	Path   string `json:"path" form:"path" binding:"" example:"/v1/test"`
-	Method string `json:"method" form:"method" binding:"" example:"GET"`
+	Group   string `json:"group" form:"group" binding:"required" example:"权限管理/菜单"`
+	Name    string `json:"name" form:"name" binding:"required" example:"菜单列表"`
+	Path    string `json:"path" form:"path" binding:"required" example:"/v1/test"`
+	Method  string `json:"method" form:"method" binding:"required" example:"GET"`
+	MenuIDs []uint `json:"menuIds" form:"menuIds"`
 }
 type ApiUpdateRequest struct {
-	ID     uint   `json:"id" form:"id" binding:"required" example:"1"`
-	Group  string `json:"group" form:"group" binding:"" example:"权限管理"`
-	Name   string `json:"name" form:"name" binding:"" example:"菜单列表"`
-	Path   string `json:"path" form:"path" binding:"" example:"/v1/test"`
-	Method string `json:"method" form:"method" binding:"" example:"GET"`
+	ID      uint   `json:"id" form:"id" binding:"required" example:"1"`
+	Group   string `json:"group" form:"group" binding:"required" example:"权限管理/菜单"`
+	Name    string `json:"name" form:"name" binding:"required" example:"菜单列表"`
+	Path    string `json:"path" form:"path" binding:"required" example:"/v1/test"`
+	Method  string `json:"method" form:"method" binding:"required" example:"GET"`
+	MenuIDs []uint `json:"menuIds" form:"menuIds"`
 }
 type ApiDeleteRequest struct {
 	ID uint `form:"id" binding:"required" example:"1"`

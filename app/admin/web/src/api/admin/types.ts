@@ -91,13 +91,14 @@ export interface ApiDataItem {
   path: string
   method: string
   group: string
+  menuIds: number[]
   updatedAt: string
   createdAt: string
 }
 
 export type GetApisRequest = PageQuery &
   Partial<Pick<ApiDataItem, 'group' | 'name' | 'path' | 'method'>>
-export type ApiCreateRequest = Pick<ApiDataItem, 'group' | 'name' | 'path' | 'method'>
+export type ApiCreateRequest = Pick<ApiDataItem, 'group' | 'name' | 'path' | 'method' | 'menuIds'>
 export type ApiUpdateRequest = ApiCreateRequest & { id: number }
 
 export interface ListResponse<T> {

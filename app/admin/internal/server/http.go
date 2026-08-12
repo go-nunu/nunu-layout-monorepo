@@ -44,12 +44,7 @@ func NewHTTPServer(
 	})
 	// swagger doc
 	docs.SwaggerInfo.BasePath = "/"
-	s.GET("/swagger/*any", ginSwagger.WrapHandler(
-		swaggerfiles.Handler,
-		//ginSwagger.URL(fmt.Sprintf("http://localhost:%d/swagger/doc.json", conf.GetInt("app.http.port"))),
-		ginSwagger.DefaultModelsExpandDepth(-1),
-		ginSwagger.PersistAuthorization(true),
-	))
+	s.GET("/swagger/*any", newSwaggerHandler())
 
 	s.Use(
 		middleware.CORSMiddleware(),
@@ -98,4 +93,20 @@ func NewHTTPServer(
 		}
 	}
 	return s
+}
+
+func newSwaggerHandler() gin.HandlerFunc {
+	swaggerHandler := ginSwagger.WrapHandler(
+		swaggerfiles.Handler,
+		ginSwagger.URL("/swagger/doc.json"),
+		ginSwagger.DefaultModelsExpandDepth(-1),
+		ginSwagger.PersistAuthorization(true),
+	)
+	return func(ctx *gin.Context) {
+		if ctx.Param("any") == "/doc.json" {
+			ctx.Data(nethttp.StatusOK, "application/json; charset=utf-8", docs.SwaggerJSON)
+			return
+		}
+		swaggerHandler(ctx)
+	}
 }

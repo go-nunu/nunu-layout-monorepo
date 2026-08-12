@@ -179,7 +179,7 @@ func (h *AdminHandler) MenuUpdate(ctx *gin.Context) {
 		return
 	}
 	if err := h.adminService.MenuUpdate(ctx, &req); err != nil {
-		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, nil)
+		handleAdminServiceError(ctx, err)
 		return
 	}
 	v1.HandleSuccess(ctx, nil)
@@ -203,7 +203,7 @@ func (h *AdminHandler) MenuCreate(ctx *gin.Context) {
 		return
 	}
 	if err := h.adminService.MenuCreate(ctx, &req); err != nil {
-		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, nil)
+		handleAdminServiceError(ctx, err)
 		return
 	}
 	v1.HandleSuccess(ctx, nil)
@@ -227,7 +227,7 @@ func (h *AdminHandler) MenuDelete(ctx *gin.Context) {
 		return
 	}
 	if err := h.adminService.MenuDelete(ctx, req.ID); err != nil {
-		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, nil)
+		handleAdminServiceError(ctx, err)
 		return
 
 	}
@@ -397,7 +397,7 @@ func (h *AdminHandler) ApiCreate(ctx *gin.Context) {
 		return
 	}
 	if err := h.adminService.ApiCreate(ctx, &req); err != nil {
-		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, nil)
+		handleAdminServiceError(ctx, err)
 		return
 	}
 	v1.HandleSuccess(ctx, nil)
@@ -421,7 +421,7 @@ func (h *AdminHandler) ApiUpdate(ctx *gin.Context) {
 		return
 	}
 	if err := h.adminService.ApiUpdate(ctx, &req); err != nil {
-		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, nil)
+		handleAdminServiceError(ctx, err)
 		return
 	}
 	v1.HandleSuccess(ctx, nil)
@@ -445,7 +445,7 @@ func (h *AdminHandler) ApiDelete(ctx *gin.Context) {
 		return
 	}
 	if err := h.adminService.ApiDelete(ctx, req.ID); err != nil {
-		v1.HandleError(ctx, http.StatusInternalServerError, v1.ErrInternalServerError, nil)
+		handleAdminServiceError(ctx, err)
 		return
 	}
 	v1.HandleSuccess(ctx, nil)

@@ -230,7 +230,9 @@
     name: [{ required: true, message: '请输入权限标识', trigger: 'blur' }]
   }
 
-  const treeOptions = computed(() => rows.value)
+  const treeOptions = computed(() =>
+    form.id ? excludeMenuBranch(rows.value, form.id) : rows.value
+  )
   const dialogTitle = computed(() => (form.id ? '编辑菜单' : '新增菜单'))
 
   function createDefaultForm(): MenuForm {
@@ -299,6 +301,15 @@
     })
 
     return result
+  }
+
+  function excludeMenuBranch(nodes: MenuTreeItem[], excludedID: number): MenuTreeItem[] {
+    return nodes
+      .filter((node) => node.id !== excludedID)
+      .map((node) => ({
+        ...node,
+        children: excludeMenuBranch(node.children, excludedID)
+      }))
   }
 
   function isMenuHidden(row: Pick<MenuDataItem, 'hideInMenu' | 'isHide'>): boolean {
@@ -394,6 +405,10 @@
   }
 
   async function remove(row: MenuTreeItem) {
+    if (row.children.length) {
+      ElMessage.warning('该菜单仍有子菜单，请先删除或移动子菜单')
+      return
+    }
     await ElMessageBox.confirm(
       `确定删除菜单「${formatMenuTitle(row.title || row.name || '')}」吗？`,
       '删除确认',
@@ -488,7 +503,7 @@
     width: 100%;
   }
 
-  @media (max-width: 768px) {
+  @media (width <= 768px) {
     .menu-form {
       &__grid,
       &__switches {

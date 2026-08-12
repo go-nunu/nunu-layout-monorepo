@@ -1,6 +1,10 @@
 package model
 
-import "gorm.io/gorm"
+import (
+	"strings"
+
+	"gorm.io/gorm"
+)
 
 const (
 	AdminRole          = "admin"
@@ -35,12 +39,37 @@ func (m *Role) TableName() string {
 
 type Api struct {
 	gorm.Model
-	Group  string `gorm:"type:varchar(100);not null;comment:'API分组'"`
-	Name   string `gorm:"type:varchar(100);not null;comment:'API名称'"`
-	Path   string `gorm:"type:varchar(255);not null;comment:'API路径'"`
-	Method string `gorm:"type:varchar(20);not null;comment:'HTTP方法'"`
+	Group   string `gorm:"type:varchar(255);not null;comment:'API分类路径'"`
+	Name    string `gorm:"type:varchar(100);not null;comment:'API名称'"`
+	Path    string `gorm:"type:varchar(255);not null;uniqueIndex:idx_api_path_method;comment:'API路径'"`
+	Method  string `gorm:"type:varchar(20);not null;uniqueIndex:idx_api_path_method;comment:'HTTP方法'"`
+	MenuIDs []uint `gorm:"column:menu_ids;serializer:json;type:text;comment:'关联菜单ID列表'"`
 }
 
 func (m *Api) TableName() string {
 	return "api"
+}
+
+type Permission struct {
+	Resource string
+	Action   string
+}
+
+func (p Permission) Key() string {
+	return p.Resource + PermSep + p.Action
+}
+
+func ParsePermissionKey(key string) (Permission, bool) {
+	separator := strings.LastIndex(key, PermSep)
+	if separator <= 0 || separator == len(key)-1 {
+		return Permission{}, false
+	}
+	permission := Permission{
+		Resource: strings.TrimSpace(key[:separator]),
+		Action:   strings.TrimSpace(key[separator+len(PermSep):]),
+	}
+	if permission.Resource == "" || permission.Action == "" {
+		return Permission{}, false
+	}
+	return permission, true
 }
